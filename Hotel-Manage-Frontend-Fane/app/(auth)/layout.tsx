@@ -9,10 +9,10 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen flex">
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-fane-green via-fane-green-dark to-fane-blue relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-green-600 via-green-700 to-blue-600 relative overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-fane-yellow blur-3xl" />
+          <div className="absolute top-20 left-20 w-72 h-72 rounded-full bg-yellow-400 blur-3xl" />
           <div className="absolute bottom-20 right-20 w-96 h-96 rounded-full bg-white blur-3xl" />
         </div>
 
@@ -29,15 +29,15 @@ export default function AuthLayout({
 
             <div className="flex items-center gap-8 pt-4">
               <div className="text-center">
-                <p className="text-3xl font-bold text-fane-yellow">36</p>
+                <p className="text-3xl font-bold text-yellow-400">36</p>
                 <p className="text-white/70 text-sm">States</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-fane-yellow">1000+</p>
+                <p className="text-3xl font-bold text-yellow-400">1000+</p>
                 <p className="text-white/70 text-sm">Hotels</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-fane-yellow">50k+</p>
+                <p className="text-3xl font-bold text-yellow-400">50k+</p>
                 <p className="text-white/70 text-sm">Bookings</p>
               </div>
             </div>

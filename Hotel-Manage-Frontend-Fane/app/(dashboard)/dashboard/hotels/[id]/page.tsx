@@ -179,7 +179,7 @@ export default function HotelDetailsPage({ params }: { params: Promise<{ id: str
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
-  const [guests, setGuests] = useState("2")
+  const [guests, setGuests] = useState("1")
   const [isFavorite, setIsFavorite] = useState(false)
 
   const nextImage = () => {
@@ -195,7 +195,7 @@ export default function HotelDetailsPage({ params }: { params: Promise<{ id: str
   const calculateTotal = () => {
     if (!selectedRoomData || !dateRange?.from || !dateRange?.to) return 0
     const nights = Math.ceil((dateRange.to.getTime() - dateRange.from.getTime()) / (1000 * 60 * 60 * 24))
-    return selectedRoomData.price * nights
+    return selectedRoomData.price * nights * parseInt(guests)
   }
 
   const handleBookNow = () => {
@@ -408,12 +408,12 @@ export default function HotelDetailsPage({ params }: { params: Promise<{ id: str
                           <h3 className="font-semibold text-lg">{room.name}</h3>
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Users className="h-3 w-3" />
-                            Up to {room.capacity} guests
+                            Up to {room.capacity} guest{room.capacity > 1 ? 's' : ''}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-xl font-bold text-primary">₦{room.price.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground">per night</p>
+                          <p className="text-xs text-muted-foreground">per guest per night</p>
                         </div>
                       </div>
                       <p className="text-sm text-muted-foreground mt-2">{room.description}</p>
@@ -577,7 +577,7 @@ export default function HotelDetailsPage({ params }: { params: Promise<{ id: str
               {selectedRoomData && (
                 <div className="p-4 bg-secondary rounded-lg space-y-2">
                   <p className="font-medium">{selectedRoomData.name}</p>
-                  <p className="text-sm text-muted-foreground">₦{selectedRoomData.price.toLocaleString()} × night</p>
+                  <p className="text-sm text-muted-foreground">₦{selectedRoomData.price.toLocaleString()} × {parseInt(guests)} guest{parseInt(guests) > 1 ? 's' : ''} × night</p>
                   {dateRange?.from && dateRange?.to && (
                     <>
                       <hr />
@@ -597,7 +597,7 @@ export default function HotelDetailsPage({ params }: { params: Promise<{ id: str
               )}
 
               <Button
-                className="w-full"
+                className="w-full bg-green-600 hover:bg-green-700"
                 size="lg"
                 disabled={!selectedRoom || !dateRange?.from || !dateRange?.to}
                 onClick={handleBookNow}

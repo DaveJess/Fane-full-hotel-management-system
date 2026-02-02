@@ -42,8 +42,8 @@ export default function LoginPage() {
       // Redirect based on user role
       if (response.user?.role === 'superadmin') {
         router.push("/admin")
-      } else if (response.user?.role === 'hotel') {
-        router.push("/hotel-dashboard") 
+      } else if (response.user?.role === 'hotel' || response.user?.role === 'HOTEL') {
+        router.push("/dashboard/hotel-owner") 
       } else {
         router.push("/dashboard")
       }
@@ -111,7 +111,7 @@ export default function LoginPage() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Sign In
           </Button>

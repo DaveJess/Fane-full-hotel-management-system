@@ -31,7 +31,7 @@ import {
 import Image from "next/image"
 import Link from "next/link"
 import { HotelSearch } from "@/components/hotels/hotel-search"
-import { State, LGA } from "@/hooks/useStates"
+import { SimpleStateSelector } from "@/components/forms/simple-state-selector"
 import { useHotels } from "@/hooks/useBookings"
 
 const amenityIcons: Record<string, React.ReactNode> = {
@@ -47,8 +47,8 @@ function HotelsContent() {
   const { hotels, loading, error } = useHotels()
 
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedState, setSelectedState] = useState<State>()
-  const [selectedLGA, setSelectedLGA] = useState<LGA>()
+  const [selectedState, setSelectedState] = useState<string>("")
+  const [selectedCity, setSelectedCity] = useState<string>("")
   const [priceRange, setPriceRange] = useState([0, 200000])
   const [selectedStars, setSelectedStars] = useState<number[]>([])
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
@@ -59,9 +59,9 @@ function HotelsContent() {
     setFilteredHotels(hotels)
   }
 
-  const handleStateChange = (state: State) => {
+  const handleStateChange = (state: string) => {
     setSelectedState(state)
-    setSelectedLGA(undefined) // Reset LGA when state changes
+    setSelectedCity("") // Reset city when state changes
   }
 
   const sortedHotels = [...filteredHotels].sort((a: any, b: any) => {
@@ -105,6 +105,15 @@ function HotelsContent() {
     <div className="space-y-6">
       {/* Search and Filters */}
       <div className="space-y-6">
+        {/* State and City Selector */}
+        <SimpleStateSelector
+          onStateChange={handleStateChange}
+          onCityChange={setSelectedCity}
+          selectedState={selectedState}
+          selectedCity={selectedCity}
+          className="mb-6"
+        />
+        
         <HotelSearch 
           onHotelsFound={handleHotelsFound}
           className="mb-6"
@@ -174,7 +183,7 @@ function HotelsContent() {
       ) : (
         <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
           {sortedHotels.map((hotel) => (
-            <Card key={hotel._id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={hotel._id || hotel.id || JSON.stringify(hotel)} className="overflow-hidden hover:shadow-lg transition-shadow">
               <div className="relative">
                 <div className="relative w-full h-48">
                   <Image
@@ -227,7 +236,7 @@ function HotelsContent() {
                     <p className="text-xs text-muted-foreground">per night</p>
                   </div>
                   <Link href={`/dashboard/hotels/${hotel._id}`}>
-                    <Button>View Details</Button>
+                    <Button className="bg-green-600 hover:bg-green-700">View Details</Button>
                   </Link>
                 </div>
               </CardContent>
@@ -247,3 +256,14 @@ export default function HotelsPage() {
   )
 }
                                   
+
+
+
+
+
+
+
+
+
+
+

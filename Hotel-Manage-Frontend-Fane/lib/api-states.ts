@@ -1,5 +1,7 @@
 // Nigerian States and LGAs API Service
 
+import { apiClient } from './api-axios';
+
 interface State {
   id: string;
   name: string;
@@ -12,15 +14,28 @@ interface LGA {
   name: string;
   state_id: string;
   state_name: string;
+  type: 'lga' | 'city' | 'town';
 }
 
 interface City {
   id: string;
   name: string;
   state_id: string;
-  state_name: string;
-  type: 'lga' | 'city' | 'town';
 }
+
+export const statesAPI = {
+  // Get all states from backend
+  getAll: () => apiClient.get<State[]>('/api/states'),
+  
+  // Get state by ID
+  getById: (id: string) => apiClient.get<State>(`/api/states/${id}`),
+  
+  // Get cities in a state
+  getCities: (stateId: string) => apiClient.get<string[]>(`/api/states/${stateId}/cities`),
+  
+  // Search states by name
+  search: (query: string) => apiClient.get<State[]>(`/api/states?search=${query}`),
+};
 
 const API_BASE_URL = 'https://nga-states-lga.onrender.com';
 

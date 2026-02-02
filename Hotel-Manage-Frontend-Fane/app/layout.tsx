@@ -39,8 +39,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
-      <body className={`font-sans antialiased`} suppressHydrationWarning={true}>
-        {children}
+      <body className={`font-sans antialiased min-h-screen bg-background`} suppressHydrationWarning={true}>
+        <div className="min-h-screen flex flex-col">
+          <div className="flex-1">
+            {children}
+          </div>
+        </div>
         <Toaster position="top-right" richColors />
         <Analytics />
       </body>

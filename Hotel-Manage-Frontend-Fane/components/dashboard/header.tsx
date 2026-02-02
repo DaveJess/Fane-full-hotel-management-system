@@ -5,15 +5,45 @@ import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
-import { Bell, Search, Moon, Sun } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Bell, Search, Moon, Sun } from "lucide-react"
+import dynamic from "next/dynamic"
+
+// Dynamically import the dropdown menu to prevent hydration issues
+const DynamicDropdownMenu = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenu
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuContent = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuContent
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuItem = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuItem
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuTrigger = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuTrigger
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuSeparator = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuSeparator
+  })),
+  { ssr: false }
+)
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -46,41 +76,38 @@ export function DashboardHeader() {
         </div>
       </div>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <DynamicDropdownMenu>
+        <DynamicDropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">3</Badge>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80">
+        </DynamicDropdownMenuTrigger>
+        <DynamicDropdownMenuContent align="end" className="w-80">
           <div className="p-3 border-b">
             <h3 className="font-semibold">Notifications</h3>
           </div>
-          <DropdownMenuItem className="p-3 cursor-pointer">
+          <DynamicDropdownMenuItem className="p-3 cursor-pointer">
             <div>
               <p className="text-sm font-medium">Booking Confirmed!</p>
               <p className="text-xs text-muted-foreground">Your room at Eko Hotel has been confirmed.</p>
             </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="p-3 cursor-pointer">
+          </DynamicDropdownMenuItem>
+          <DynamicDropdownMenuItem className="p-3 cursor-pointer">
             <div>
               <p className="text-sm font-medium">Special Offer</p>
-              <p className="text-xs text-muted-foreground">20% off on Lagos hotels this weekend.</p>
+              <p className="text-xs text-muted-foreground">Get 20% off on weekend stays.</p>
             </div>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="p-3 cursor-pointer">
+          </DynamicDropdownMenuItem>
+          <DynamicDropdownMenuSeparator />
+          <DynamicDropdownMenuItem className="p-3 cursor-pointer">
             <div>
-              <p className="text-sm font-medium">Review Reminder</p>
-              <p className="text-xs text-muted-foreground">Don&apos;t forget to review your recent stay.</p>
+              <p className="text-sm font-medium">Payment Reminder</p>
+              <p className="text-xs text-muted-foreground">Complete your booking payment.</p>
             </div>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="text-center justify-center text-primary">
-            View all notifications
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DynamicDropdownMenuItem>
+        </DynamicDropdownMenuContent>
+      </DynamicDropdownMenu>
 
       <Button variant="ghost" size="icon">
         <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

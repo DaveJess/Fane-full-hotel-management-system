@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -17,7 +18,37 @@ import {
 } from "@/components/ui/sidebar"
 import { FaneLogo } from "@/components/fane-logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import dynamic from "next/dynamic"
+
+// Dynamically import the dropdown menu to prevent hydration issues
+const DynamicDropdownMenu = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenu
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuContent = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuContent
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuItem = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuItem
+  })),
+  { ssr: false }
+)
+
+const DynamicDropdownMenuTrigger = dynamic(
+  () => import("@/components/ui/dropdown-menu").then(mod => ({
+    default: mod.DropdownMenuTrigger
+  })),
+  { ssr: false }
+)
+
 import {
   LayoutDashboard,
   Search,
@@ -30,6 +61,7 @@ import {
   HelpCircle,
   LogOut,
   ChevronUp,
+  Wallet,
 } from "lucide-react"
 
 const mainNavItems = [
@@ -38,6 +70,7 @@ const mainNavItems = [
   { title: "My Bookings", icon: CalendarDays, href: "/dashboard/bookings" },
   { title: "Reservations", icon: BookMarked, href: "/dashboard/reservations" },
   { title: "Favorites", icon: Heart, href: "/dashboard/favorites" },
+  { title: "Wallet", icon: Wallet, href: "/dashboard/wallet" },
 ]
 
 const accountNavItems = [
@@ -99,8 +132,8 @@ export function DashboardSidebar() {
       <SidebarFooter className="border-t">
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+            <DynamicDropdownMenu>
+              <DynamicDropdownMenuTrigger asChild>
                 <SidebarMenuButton size="lg" className="w-full">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="/nigerian-business-man-portrait.jpg" />
@@ -112,28 +145,28 @@ export function DashboardSidebar() {
                   </div>
                   <ChevronUp className="h-4 w-4 text-muted-foreground" />
                 </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side="top" className="w-(--radix-dropdown-menu-trigger-width)">
-                <DropdownMenuItem asChild>
+              </DynamicDropdownMenuTrigger>
+              <DynamicDropdownMenuContent side="top" className="w-(--radix-dropdown-menu-trigger-width)">
+                <DynamicDropdownMenuItem asChild>
                   <Link href="/dashboard/profile">
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
+                </DynamicDropdownMenuItem>
+                <DynamicDropdownMenuItem asChild>
                   <Link href="/dashboard/settings">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="text-destructive">
+                </DynamicDropdownMenuItem>
+                <DynamicDropdownMenuItem asChild className="text-destructive">
                   <Link href="/login">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DynamicDropdownMenuItem>
+              </DynamicDropdownMenuContent>
+            </DynamicDropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

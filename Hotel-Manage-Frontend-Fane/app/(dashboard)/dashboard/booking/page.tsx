@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -22,9 +22,12 @@ import {
   CheckCircle2,
   Loader2,
   ArrowLeft,
+  Wallet,
 } from "lucide-react"
 import Link from "next/link" 
 import { toast } from "sonner"
+import { walletAPI } from "@/lib/api-wallet"
+import { bookingAPI, CreateBookingRequest } from "@/lib/api-booking"
 
 function BookingContent() {
   const searchParams = useSearchParams()
@@ -32,8 +35,9 @@ function BookingContent() {
 
   const [step, setStep] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState("card")
+  const [paymentMethod, setPaymentMethod] = useState("wallet")
   const [agreeTerms, setAgreeTerms] = useState(false)
+  const [walletBalance, setWalletBalance] = useState(0)
 
   const [guestInfo, setGuestInfo] = useState({
     firstName: "",
@@ -55,14 +59,27 @@ function BookingContent() {
   const checkOut = searchParams.get("checkOut")
     ? new Date(searchParams.get("checkOut")!)
     : new Date(Date.now() + 86400000 * 3)
-  const guests = searchParams.get("guests") || "2"
+  const guests = searchParams.get("guests") || "1"
 
   const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24))
   const roomPrice = 95000
-  const totalPrice = roomPrice * nights
+  const totalPrice = roomPrice * nights * parseInt(guests)
   const taxes = Math.round(totalPrice * 0.075)
   const serviceFee = 5000
   const grandTotal = totalPrice + taxes + serviceFee
+
+  // Fetch wallet balance on component mount
+  useEffect(() => {
+    const fetchWalletBalance = async () => {
+      try {
+        const balance = await walletAPI.getBalance()
+        setWalletBalance(balance.balance)
+      } catch (error) {
+        console.error('Failed to fetch wallet balance:', error)
+      }
+    }
+    fetchWalletBalance()
+  }, [])
 
   const handlePayment = async () => {
     if (!agreeTerms) {
@@ -70,16 +87,53 @@ function BookingContent() {
       return
     }
 
+    // Check wallet balance if using wallet payment
+    if (paymentMethod === 'wallet' && walletBalance < grandTotal) {
+      toast.error("Insufficient wallet balance. Please add funds to your wallet.")
+      return
+    }
+
     setIsProcessing(true)
 
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      // Create booking
+      const bookingData: CreateBookingRequest = {
+        hotelId: searchParams.get("hotelId") || "1", // Get hotelId from URL params
+        checkIn: checkIn.toISOString(),
+        checkOut: checkOut.toISOString(),
+        guests: {
+          adults: parseInt(guests),
+          children: 0
+        },
+        totalAmount: grandTotal,
+        paymentMethod: paymentMethod as 'wallet' | 'card' | 'bank_transfer',
+        guestDetails: {
+          firstName: guestInfo.firstName,
+          lastName: guestInfo.lastName,
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+          specialRequests: guestInfo.specialRequests
+        },
+        roomDetails: {
+          roomType: 'Deluxe Room',
+          pricePerNight: roomPrice
+        }
+      }
 
-    toast.success("Booking confirmed!", {
-      description: "Your receipt has been sent to your email.",
-    })
+      const booking = await bookingAPI.createBooking(bookingData)
+      
+      toast.success("Booking confirmed!", {
+        description: `Booking reference: ${booking.bookingReference}`
+      })
 
-    router.push("/dashboard/booking/success")
+      setStep(3)
+    } catch (error: any) {
+      toast.error("Booking failed", {
+        description: error.message || "Please try again"
+      })
+    } finally {
+      setIsProcessing(false)
+    }
   }
 
   return (
@@ -176,7 +230,7 @@ function BookingContent() {
                   />
                 </div>
 
-                <Button className="w-full" onClick={() => setStep(2)}>
+                <Button className="w-full bg-green-600 hover:bg-green-700" onClick={() => setStep(2)}>
                   Continue to Payment
                 </Button>
               </CardContent>
@@ -191,6 +245,21 @@ function BookingContent() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-secondary/50">
+                    <RadioGroupItem value="wallet" id="wallet" />
+                    <Label htmlFor="wallet" className="flex-1 cursor-pointer">
+                      <div className="flex items-center gap-2">
+                        <Wallet className="h-5 w-5" />
+                        <span>Wallet</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Balance: ₦{walletBalance.toLocaleString()}
+                      </div>
+                    </Label>
+                    {walletBalance < grandTotal && (
+                      <Badge variant="destructive">Insufficient</Badge>
+                    )}
+                  </div>
                   <div className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-secondary/50">
                     <RadioGroupItem value="card" id="card" />
                     <Label htmlFor="card" className="flex-1 cursor-pointer">
@@ -285,7 +354,7 @@ function BookingContent() {
                   <Button variant="outline" onClick={() => setStep(1)} className="bg-transparent">
                     Back
                   </Button>
-                  <Button className="flex-1" onClick={handlePayment} disabled={isProcessing || !agreeTerms}>
+                  <Button className="flex-1 bg-green-600 hover:bg-green-700" onClick={handlePayment} disabled={isProcessing || !agreeTerms}>
                     {isProcessing ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

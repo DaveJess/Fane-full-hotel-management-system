@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { useStates, useCities, useCitySearch, State, City } from "@/hooks/useStates";
+import { useStates, useCities, State, LGA } from "@/hooks/useStates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +10,9 @@ import { Search, ChevronDown, MapPin, Building2 } from "lucide-react";
 
 interface StateCitySelectorProps {
   onStateChange?: (state: State) => void;
-  onCityChange?: (city: City) => void;
+  onCityChange?: (city: LGA) => void;
   selectedState?: State;
-  selectedCity?: City;
+  selectedCity?: LGA;
   className?: string;
   showCitySearch?: boolean;
 }

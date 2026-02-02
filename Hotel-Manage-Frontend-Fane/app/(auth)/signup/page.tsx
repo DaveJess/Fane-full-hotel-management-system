@@ -27,7 +27,6 @@ export default function SignupPage() {
     password: "",
     confirmPassword: "",
     identification: "NATIONAL_ID",
-    id_no: "",
     nin: "",
     phone: "",
     role: "USER",
@@ -57,6 +56,16 @@ export default function SignupPage() {
       return
     }
 
+    if (!formData.email) {
+      toast.error("Email Required", { description: "Please enter your email address." })
+      return
+    }
+
+    if (!formData.phone) {
+      toast.error("Phone Required", { description: "Please enter your phone number." })
+      return
+    }
+
     setIsLoading(true)
 
     try {
@@ -72,15 +81,15 @@ export default function SignupPage() {
       }
 
       const userData = {
-        firstname: firstname.trim(),
-        lastname: lastname.trim(),
+        firstName: firstname.trim(),
+        lastName: lastname.trim(),
         email: formData.email.trim(),
         password: formData.password,
+        phone: formData.phone.trim() || undefined,
         role: accountType === "hotel" ? "HOTEL" : "USER",
         identification: formData.identification,
-        id_no: parseInt(formData.id_no) || 12345678901,
         nin: formData.nin || undefined,
-        phone: formData.phone || undefined
+        hotelName: accountType === "hotel" ? formData.hotelName : undefined
       }
 
       console.log('Sending registration data:', userData); // Debug log
@@ -112,11 +121,16 @@ export default function SignupPage() {
   }
 
   return (
-    <Card className="border-0 shadow-xl">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-        <CardDescription>Join Fane to start booking or listing hotels</CardDescription>
-      </CardHeader>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <div className="w-full max-w-md">
+        <Card className="border-0 shadow-xl">
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+            <CardDescription>Join Fane to start booking or listing hotels</CardDescription>
+          </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {/* Account Type Selection */}
@@ -237,31 +251,25 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="id_no">ID Number</Label>
-            <div className="relative">
-              <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="id_no"
-                placeholder="Enter your ID number"
-                className="pl-10"
-                value={formData.id_no}
-                onChange={(e) => setFormData({ ...formData, id_no: e.target.value.replace(/\D/g, "") })}
-                required
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">Required: Your official identification number</p>
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
             <div className="relative">
               <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="phone"
-                placeholder="Enter your phone number"
+                placeholder="+2348012345678"
                 className="pl-10"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  let phone = e.target.value.replace(/\D/g, ''); // Remove non-digits
+                  if (phone.startsWith('0')) {
+                    phone = '234' + phone.substring(1); // Convert 0xxx to +234xxx
+                  } else if (phone.startsWith('234')) {
+                    phone = phone; // Keep as is
+                  } else if (!phone.startsWith('234') && phone.length > 0) {
+                    phone = '234' + phone; // Add 234 prefix
+                  }
+                  setFormData({ ...formData, phone: phone.startsWith('234') ? '+' + phone : phone });
+                }}
                 required
               />
             </div>
@@ -316,8 +324,8 @@ export default function SignupPage() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
+        <CardFooter className="flex flex-col gap-6">
+          <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Account
           </Button>
@@ -342,5 +350,7 @@ export default function SignupPage() {
         </CardFooter>
       </form>
     </Card>
+      </div>
+    </div>
   )
 }

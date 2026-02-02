@@ -10,11 +10,17 @@ export default function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <DashboardSidebar />
-      <SidebarInset>
-        <DashboardHeader />
-        <main className="flex-1 p-6">{children}</main>
-      </SidebarInset>
+      <div className="flex min-h-screen bg-background">
+        <DashboardSidebar />
+        <div className="flex-1 flex flex-col">
+          <DashboardHeader />
+          <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+            <div className="space-y-6">
+              {children}
+            </div>
+          </main>
+        </div>
+      </div>
     </SidebarProvider>
   )
 }

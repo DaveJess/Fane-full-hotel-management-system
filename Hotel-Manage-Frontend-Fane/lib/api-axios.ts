@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8003';
 
 interface ApiConfig extends AxiosRequestConfig {
   retries?: number;
@@ -13,11 +13,6 @@ interface ApiResponse<T = any> {
   message?: string;
 }
 
-interface ApiConfig {
-  retries?: number;
-  [key: string]: any;
-}
-
 // Create axios instance with default configuration
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -25,60 +20,56 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
-// Request interceptor for token
+// Single request interceptor for JWT token
 axiosInstance.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = getToken();
     if (token && isValidToken(token)) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      } as any; // Type assertion to fix header type issue
+      config.headers.Authorization = `Bearer ${token}`;
     }
   }
+  
+  // Minimal logging
+  console.log(`🚀 ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+  
   return config;
 });
 
-// Response interceptor for error handling
+// Single response interceptor for error handling
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`✅ ${response.status} ${response.config.url}`);
+    return response;
+  },
   (error) => {
+    console.error(`❌ API Error: ${error.message}`);
+    
+    // Surface real backend errors with detailed information
     if (error.response) {
-      // Server responded with error status
-      const errorData = error.response?.data;
+      const status = error.response.status;
+      const data = error.response.data;
       
-      // Handle validation errors array
-      if (Array.isArray(errorData?.errors)) {
-        const errorMessages = errorData.errors.map((err: any) => err.msg || err.message).join(', ');
-        throw new Error(errorMessages || 'Validation failed');
+      console.error(`🔍 Backend Error Details:`, {
+        status,
+        message: data?.message,
+        errors: data?.errors,
+        fullData: data
+      });
+      
+      // If there are validation errors, show them
+      if (data?.errors && Array.isArray(data.errors)) {
+        const validationErrors = data.errors.map((err: any) => err.message || err.msg).join(', ');
+        throw new Error(validationErrors);
       }
       
-      // Handle single error message
-      if (typeof errorData === 'string') {
-        throw new Error(errorData);
-      }
-      
-      // Handle error object with message property
-      if (errorData?.message) {
-        throw new Error(errorData.message);
-      }
-      
-      // Handle error object with error property
-      if (errorData?.error) {
-        throw new Error(errorData.error);
-      }
-      
-      // Fallback to status text
-      throw new Error(error.response.statusText || 'Request failed');
-    } else if (error.request) {
-      // Request was made but no response received
-      throw new Error('Network error - no response from server');
-    } else {
-      // Something else happened
-      throw new Error(error.message || 'Request setup failed');
+      const errorMessage = data?.message || data?.error || 'Server error';
+      throw new Error(errorMessage);
     }
+    
+    throw error;
   }
 );
 
@@ -92,8 +83,9 @@ const getToken = (): string | null => {
 
 const isValidToken = (token: string): boolean => {
   try {
+    if (!token) return false;
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp && payload.exp > Date.now() / 1000;
+    return payload.exp > Date.now() / 1000;
   } catch {
     return false;
   }
@@ -117,7 +109,14 @@ export const apiClient = {
       
       return response.data;
     } catch (error: any) {
-      console.error('API request failed:', error.message);
+      // Remove all mock data - surface real backend errors
+      console.error(`❌ Request failed: ${endpoint}`, error);
+      
+      if (error.response) {
+        const errorMessage = error.response.data?.message || error.response.data?.error || 'Server error';
+        throw new Error(errorMessage);
+      }
+      
       throw error;
     }
   },
@@ -147,19 +146,8 @@ export const authAPI = {
   register: (userData: any) =>
     apiClient.post('/api/auth/register', userData),
   
-  verify: (token: string) =>
-    apiClient.get(`/api/auth/verify/${token}`),
-};
-
-// Users API
-export const usersAPI = {
-  getAll: () => apiClient.get('/api/users'),
-  getById: (id: string) => apiClient.get(`/api/users/${id}`),
-  create: (userData: any) => apiClient.post('/api/users', userData),
-  update: (id: string, userData: any) => apiClient.put(`/api/users/${id}`, userData),
-  delete: (id: string) => apiClient.delete(`/api/users/${id}`),
-  getProfile: () => apiClient.get('/api/users/profile'),
-  updateProfile: (userData: any) => apiClient.put('/api/users/profile', userData),
+  verifyEmail: (email: string, code: string) =>
+    apiClient.post('/api/auth/verify-email', { email, code }),
 };
 
 // Hotels API
@@ -175,8 +163,26 @@ export const hotelsAPI = {
 export const bookingsAPI = {
   getAll: () => apiClient.get('/api/bookings'),
   getById: (id: string) => apiClient.get(`/api/bookings/${id}`),
+  getByUser: (userId: string) => apiClient.get(`/api/bookings/user/${userId}`),
   create: (bookingData: any) => apiClient.post('/api/bookings', bookingData),
   update: (id: string, bookingData: any) => apiClient.put(`/api/bookings/${id}`, bookingData),
-  delete: (id: string) => apiClient.delete(`/api/bookings/${id}`),
-  get: (endpoint: string) => apiClient.get(endpoint), // Custom endpoint support
+  cancel: (id: string) => apiClient.post(`/api/bookings/${id}/cancel`),
+  getStats: () => apiClient.get('/api/bookings/stats'),
 };
+
+// Users API
+export const usersAPI = {
+  getProfile: () => apiClient.get('/api/users/profile'),
+  updateProfile: (userData: any) => apiClient.put('/api/users/profile', userData),
+  deleteAccount: () => apiClient.delete('/api/users/account'),
+};
+
+// Wallet API
+export const walletAPI = {
+  getBalance: () => apiClient.get('/api/wallet/balance'),
+  getTransactions: () => apiClient.get('/api/wallet/transactions'),
+  fund: (amount: number) => apiClient.post('/api/wallet/fund', { amount }),
+  withdraw: (amount: number) => apiClient.post('/api/wallet/withdraw', { amount }),
+};
+
+export default apiClient;
