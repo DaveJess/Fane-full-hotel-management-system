@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { FaneLogo } from "@/components/fane-logo"
-import { HeroSection } from "@/components/landing/hero-section"
-import { FeaturesSection } from "@/components/landing/features-section"
+import { PerfectTravelHero } from "@/components/landing/perfect-travel-hero"
+import { PerfectFeatures } from "@/components/landing/perfect-features"
 import { StatesSection } from "@/components/landing/states-section"
 import { TestimonialsSection } from "@/components/landing/testimonials-section"
 import { CTASection } from "@/components/landing/cta-section"
@@ -49,8 +49,8 @@ export default function LandingPage() {
       </header>
 
       <main>
-        <HeroSection />
-        <FeaturesSection />
+        <PerfectTravelHero />
+        <PerfectFeatures />
         <StatesSection />
         <TestimonialsSection />
         <CTASection />
